@@ -16,7 +16,7 @@ class BookCategoryController:
 
 class BookController:
     def search_books_by_title(self, db: Session, query: str):
-        books = db.query(Book).filter(Book.title.like(f'%{query}%')).all()
+        books = db.query(Book).filter(Book.title.ilike(f'%{query}%')).all()
         return books
 
     def get_books(self, db: Session, skip: int = 0, limit: int = 100):
