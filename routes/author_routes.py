@@ -22,8 +22,8 @@ async def get_author_and_books(author_name: str, db: Session = Depends(get_db)):
     # Подготовим данные в формате словаря
     response_data = {
         "authors": {
-            "id": author.id,
-            "name": author.name,
+            "author_id": author.author_id,
+            "author_name": author.author_name,
             # Другие данные об авторе, которые вы хотите включить
         },
         "books": books  # Список названий книг

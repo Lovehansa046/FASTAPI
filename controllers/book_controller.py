@@ -1,18 +1,18 @@
 from sqlalchemy import func
 
-from models.BookCategories_models import BookCategory
+# from models.BookCategories_models import BookCategory
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
 from models.books_models import Book
 
 
-class BookCategoryController:
-    def get_categories_by_book_id(self, db: Session, book_id: int):
-        categories = db.query(BookCategory).filter(BookCategory.bookid == book_id).all()
-        if not categories:
-            raise HTTPException(status_code=404, detail="Categories not found")
-        return categories
+# class BookCategoryController:
+#     def get_categories_by_book_id(self, db: Session, book_id: int):
+#         categories = db.query(BookCategory).filter(BookCategory.book_id == book_id).all()
+#         if not categories:
+#             raise HTTPException(status_code=404, detail="Categories not found")
+#         return categories
 
 class BookController:
     def search_books_by_title(self, db: Session, query: str):

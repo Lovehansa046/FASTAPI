@@ -4,6 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from pydantic import BaseModel
 
+from models.BookCategories_models import book_category_association
 
 Base = declarative_base()
 
@@ -20,6 +21,9 @@ class Book(Base):
     shortDescription = Column(Text)
     longDescription = Column(Text)
     status = Column(String(255))
+
+    categories = relationship('Categories', secondary=book_category_association, back_populates='books')
+
 
 
 

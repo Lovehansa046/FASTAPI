@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
-from controllers.book_controller import BookCategoryController
+# from controllers.book_controller import BookCategoryController
 from config.database import get_db  # Функция для получения подключения к базе данных
 from jinja2 import Template
 from fastapi.responses import HTMLResponse
@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 
 
 router = APIRouter()
-book_category_controller = BookCategoryController()
+# book_category_controller = BookCategoryController()
 book_controller = BookController()
 
 

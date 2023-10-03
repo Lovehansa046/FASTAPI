@@ -19,3 +19,5 @@ def get_books_by_category(category_name: str, skip: int = 0, limit: int = 10, db
 @router.get("/categories/bookcounts/", response_model=List[dict])
 def count_books_by_category(db: Session = Depends(get_db)):
     return categories_controller.count_books_by_category(db)
+
+# @router.delete("category/",)
