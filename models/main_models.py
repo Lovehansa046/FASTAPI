@@ -1,4 +1,6 @@
 # models.py
+from datetime import datetime
+from typing import Optional, Union
 
 from sqlalchemy import Column, Integer, String, Table, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
@@ -73,7 +75,6 @@ class ReadableBook(BaseModel):
 class BookOut(BaseModel):
     id: int
     title: str
-    author_id: int
     isbn: str
     pageCount: int
     publishedDate: str
@@ -81,6 +82,21 @@ class BookOut(BaseModel):
     shortDescription: str
     longDescription: str
     status: str
+
+    class Config:
+        orm_mode = True
+
+class BookWithCategory(BaseModel):
+    id: int
+    title: str
+    isbn: Optional[Union[str, None]]
+    pageCount: int
+    publishedDate: Optional[Union[str, datetime, None]]
+    thumbnailUrl: str
+    shortDescription: Optional[Union[str, None]]
+    longDescription: Optional[Union[str, None]]
+    status: str
+    category_name: str
 
     class Config:
         orm_mode = True

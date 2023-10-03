@@ -2,21 +2,44 @@ from typing import List
 
 from fastapi import APIRouter, Depends, Request, HTTPException
 from sqlalchemy.orm import Session
-from config.database import get_db
-from controllers.main_controllers import get_books_by_category_and_author, get_all_books
-from models.main_models import BookOut, ReadableBook
+from config.database import get_db, SessionLocal
+from models.main_models import Book, ReadableBook, Categories
+from fastapi.responses import JSONResponse
+from controllers.main_controllers import BookController, Author_Book_Controller
 
+book_controller = BookController()
+author_book_controller = Author_Book_Controller()
 
 router = APIRouter()
 
-@router.get("/books/{category_name}/{author_name}", response_model=List[BookOut])
-def get_books_by_category_and_author_route(
-    category_name: str, author_name: str, skip: int = 0, limit: int = 10, db: Session = Depends(get_db)
-):
-    books = get_books_by_category_and_author(db, category_name, author_name, skip, limit)
+@router.get("/books/", response_class=JSONResponse)
+def read_all_books(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    books = book_controller.get_books(db, skip=skip, limit=limit)
+    # Предполагается, что books - это список словарей, представляющих данные о книгах
     return books
 
-@router.get("/books", response_model=List[ReadableBook])
-def read_books(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    books = get_all_books(db, skip=skip, limit=limit)
+@router.get("/books/word/{query}", response_class=JSONResponse)
+def search_books_by_title(query: str, db: Session = Depends(get_db)):
+    books = book_controller.search_books_by_title(db, query)
+
+    if not books:
+        raise HTTPException(status_code=404, detail=f"No books found with '{query}' in the title.")
+
+    # Предположим, что books - это список словарей с информацией о книгах
     return books
+
+@router.get("/author/{author_name}")
+def get_author_and_books_route(author_name: str, db: Session = Depends(get_db)):
+    author, books = author_book_controller.get_author_and_books(db, author_name)
+    if author:
+        return {"author": author, "books": books}
+    raise HTTPException(status_code=404, detail="Author not found")
+
+@router.get("/books/category/{category_name}")
+def get_books_by_category(category_name: str, db: Session = Depends(get_db), skip: int = 0, limit: int = 10):
+    books = book_controller.get_books_by_category(db, category_name, skip, limit)
+    return books
+
+@router.get("/count-books-by-category")
+def get_count_books_by_category(db: Session = Depends(get_db)):
+    return book_controller.count_books_by_category(db)
