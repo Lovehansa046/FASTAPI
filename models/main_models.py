@@ -92,7 +92,7 @@ class BookWithCategory(BaseModel):
     isbn: Optional[Union[str, None]]
     pageCount: int
     publishedDate: Optional[Union[str, datetime, None]]
-    thumbnailUrl: str
+    thumbnailUrl: Optional[str]
     shortDescription: Optional[Union[str, None]]
     longDescription: Optional[Union[str, None]]
     status: str
@@ -100,3 +100,8 @@ class BookWithCategory(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+
+class UpdateAuthorRequest(BaseModel):
+    author_name: str

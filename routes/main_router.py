@@ -3,7 +3,7 @@ from typing import List
 from fastapi import APIRouter, Depends, Request, HTTPException
 from sqlalchemy.orm import Session
 from config.database import get_db, SessionLocal
-from models.main_models import Book, ReadableBook, Categories
+from models.main_models import Book, ReadableBook, Categories, UpdateAuthorRequest, Author
 from fastapi.responses import JSONResponse
 from controllers.main_controllers import BookController, Author_Book_Controller
 
@@ -43,3 +43,9 @@ def get_books_by_category(category_name: str, db: Session = Depends(get_db), ski
 @router.get("/count-books-by-category")
 def get_count_books_by_category(db: Session = Depends(get_db)):
     return book_controller.count_books_by_category(db)
+
+
+@router.put("/authors/{author_id}", response_model=UpdateAuthorRequest)
+async def update_author_route(author_id: int, request: UpdateAuthorRequest, db: Session = Depends(get_db)):
+    author = author_book_controller.update_author(db, author_id, request)
+    return author

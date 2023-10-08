@@ -1,12 +1,10 @@
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from datetime import datetime
 
 from config.database import SessionLocal, get_db
-from models.main_models import Book, Author, Categories, BookWithCategory
-
-
+from models.main_models import Book, Author, Categories, BookWithCategory, UpdateAuthorRequest
 
 
 class BookController:
@@ -70,4 +68,13 @@ class Author_Book_Controller:
             return author, books
         return None, []
 
+    def update_author(self, db: Session, author_id: int, request: UpdateAuthorRequest):
+        author = db.query(Author).filter(Author.author_id == author_id).first()
+        if not author:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Author not found")
 
+        author.author_name = request.author_name
+        db.commit()
+        db.refresh(author)
+
+        return author
