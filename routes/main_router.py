@@ -3,12 +3,14 @@ from typing import List
 from fastapi import APIRouter, Depends, Request, HTTPException
 from sqlalchemy.orm import Session
 from config.database import get_db, SessionLocal
-from models.main_models import Book, ReadableBook, Categories, UpdateAuthorRequest, Author
+from models.main_models import Book, ReadableBook, Categories, UpdateAuthorRequest, Author, UpdateCategoryRequest, \
+    UpdateBookRequest, CreateBookRequest
 from fastapi.responses import JSONResponse
-from controllers.main_controllers import BookController, Author_Book_Controller
+from controllers.main_controllers import BookController, Author_Book_Controller, Category_controller
 
 book_controller = BookController()
 author_book_controller = Author_Book_Controller()
+category_controller = Category_controller()
 
 router = APIRouter()
 
@@ -49,3 +51,123 @@ def get_count_books_by_category(db: Session = Depends(get_db)):
 async def update_author_route(author_id: int, request: UpdateAuthorRequest, db: Session = Depends(get_db)):
     author = author_book_controller.update_author(db, author_id, request)
     return author
+
+@router.put("/categories/{category_id}", response_model=UpdateCategoryRequest)
+async def update_category_route(category_id: int, request: UpdateCategoryRequest, db: Session = Depends(get_db)):
+    category = category_controller.update_category(db, category_id, request)
+    if category is None:
+        raise HTTPException(status_code=404, detail="Category not found")
+    return category
+
+
+@router.put("/books/{book_id}", response_model=UpdateBookRequest)
+async def update_book_route(
+    book_id: int,
+    request: UpdateBookRequest,
+    db: Session = Depends(get_db)
+):
+    book = book_controller.update_book(db, book_id, request)
+    if book:
+        return book
+    else:
+        raise HTTPException(status_code=404, detail="Book not found")
+
+@router.delete("/author/{author_id}", response_model=dict)
+def delete_author(
+    author_id: int,
+    db: Session = Depends(get_db),
+):
+    try:
+        author_book_controller.delete_author_and_associated_books(db, author_id)
+        return {"message": "Author and associated data have been deleted"}
+    except HTTPException as e:
+        raise e
+
+@router.delete("/category/{category_id}", response_model=dict)
+def delete_category(
+    category_id: int,
+    db: Session = Depends(get_db),
+):
+    try:
+        category_controller.delete_category_and_associated_books(db, category_id)
+        return {"message": "Category and associated data have been deleted"}
+    except HTTPException as e:
+        raise e
+
+
+@router.delete("/book/{book_id}", response_model=dict)
+def delete_book(
+    book_id: int,
+    db: Session = Depends(get_db),
+):
+    try:
+        book_controller.delete_book_and_associated_data(db, book_id)
+        return {"message": "Book and associated data have been deleted"}
+    except HTTPException as e:
+        raise e
+
+@router.post("/authors/author", response_model=None)
+def add_author(
+    author_name: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        author = author_book_controller.create_author(db, author_name)
+        return {"message": "Author added successfully", "author": author}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/categories/category", response_model=None)
+def add_category(
+    category_name: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        category = category_controller.create_category(db, category_name)
+        return {"message": "Category created successfully", "category_id": category}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/books/book", response_model=CreateBookRequest)
+async def create_book_with_authors_and_categories(
+    book: CreateBookRequest,
+    authors: List[str],
+    categories: List[str],
+    db: Session = Depends(get_db),
+):
+    try:
+        # Создайте экземпляр Book на основе данных из CreateBookRequest
+        book = Book(
+            title=book.title,
+            isbn=book.isbn,
+            pageCount=book.pageCount,
+            publishedDate=book.publishedDate,
+            thumbnailUrl=book.thumbnailUrl,
+            shortDescription=book.shortDescription,
+            longDescription=book.longDescription,
+            status=book.status,
+        )
+
+        # Проверьте и создайте авторов и категории, если они еще не существуют
+        for author_name in authors:
+            author = db.query(Author).filter(Author.name == author_name).first()
+            if not author:
+                author = Author(name=author_name)
+            book.authors.append(author)
+
+        for category_name in categories:
+            category = db.query(Categories).filter(Categories.name == category_name).first()
+            if not category:
+                category = Categories(name=category_name)
+            book.categories.append(category)
+
+        # Добавьте книгу в сессию и сохраните её в базе данных
+        db.add(book)
+        db.commit()
+        db.refresh(book)
+
+        return {"message": "Book created successfully", "book_id": book.id}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Internal Server Error")

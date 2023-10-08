@@ -1,6 +1,6 @@
 # models.py
 from datetime import datetime
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 from sqlalchemy import Column, Integer, String, Table, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
@@ -105,3 +105,29 @@ class BookWithCategory(BaseModel):
 
 class UpdateAuthorRequest(BaseModel):
     author_name: str
+
+class UpdateCategoryRequest(BaseModel):
+    category_name: str
+
+
+class UpdateBookRequest(BaseModel):
+    title: Optional[str] = None
+    isbn: Optional[str] = None
+    pageCount: Optional[int] = None
+    publishedDate: Optional[datetime] = None
+    thumbnailUrl: Optional[str] = None
+    shortDescription: Optional[str] = None
+    longDescription: Optional[str] = None
+    status: Optional[str] = None
+    authors: Optional[List[str]] = None
+    categories: Optional[List[str]] = None
+
+class CreateBookRequest(BaseModel):
+    title: Optional[str] = None
+    isbn: Optional[str] = None
+    pageCount: Optional[int] = None
+    publishedDate: Optional[datetime] = None
+    thumbnailUrl: Optional[str] = None
+    shortDescription: Optional[str] = None
+    longDescription: Optional[str] = None
+    status: Optional[str] = None
