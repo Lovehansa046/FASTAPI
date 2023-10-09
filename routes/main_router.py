@@ -131,41 +131,7 @@ def add_category(
 @router.post("/books/book")
 async def create_book(book_data: CreateBook, author_names: List[str], category_names: List[str], db: Session = Depends(get_db)):
     try:
-        # Создаем список авторов и категорий
-        authors = []
-        for author_name in author_names:
-            author = author_book_controller.get_author_by_name(db, author_name)
-            if author is None:
-                author = author_book_controller.create_author(db, author_name)
-            authors.append(author)
-
-        categories = []
-        for category_name in category_names:
-            category = category_controller.get_category_by_name(db, category_name)
-            if category is None:
-                category = category_controller.create_category(db, category_name)
-            categories.append(category)
-
-        new_book = Book(**book_data.dict())
-
-        # Связываем книгу с авторами и категориями
-        new_book.authors.extend(authors)
-        new_book.categories.extend(categories)
-
-        db.add(new_book)
-        db.commit()
-        db.refresh(new_book)
-
-        # Получаем информацию о созданных авторах и категориях
-        author_info = [{"id": author.author_id, "name": author.author_name} for author in authors]
-        category_info = [{"id": category.category_id, "name": category.category_name} for category in categories]
-
-        # Возвращаем информацию о книге, авторах и категориях
-        return {
-            "book": new_book,
-            "authors": author_info,
-            "categories": category_info
-        }
+        result = book_controller.create_book_with_authors_and_categories(db, book_data, author_names, category_names)
+        return result
     except Exception as e:
-        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))

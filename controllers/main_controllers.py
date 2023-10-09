@@ -1,13 +1,55 @@
+from typing import List
 
 from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from models.main_models import Book, Author, Categories, BookWithCategory, UpdateAuthorRequest, UpdateCategoryRequest, \
-    UpdateBookRequest
+    UpdateBookRequest, CreateBook
 
 
 class BookController:
+
+    def create_book_with_authors_and_categories(self, db: Session, book_data: CreateBook, author_names: List[str],
+                                                category_names: List[str]):
+        try:
+            # Создаем список авторов и категорий
+            authors = []
+            for author_name in author_names:
+                author = Author_Book_Controller.get_author_by_name(db, author_name)
+                if author is None:
+                    author = Author_Book_Controller.create_author(db, author_name)
+                authors.append(author)
+
+            categories = []
+            for category_name in category_names:
+                category = Category_controller.get_category_by_name(db, category_name)
+                if category is None:
+                    category = Category_controller.create_category(db, category_name)
+                categories.append(category)
+
+            new_book = Book(**book_data.dict())
+
+            # Связываем книгу с авторами и категориями
+            new_book.authors.extend(authors)
+            new_book.categories.extend(categories)
+
+            db.add(new_book)
+            db.commit()
+            db.refresh(new_book)
+
+            # Получаем информацию о созданных авторах и категориях
+            author_info = [{"id": author.author_id, "name": author.author_name} for author in authors]
+            category_info = [{"id": category.category_id, "name": category.category_name} for category in categories]
+
+            return {
+                "book": new_book,
+                "authors": author_info,
+                "categories": category_info
+            }
+        except Exception as e:
+            db.rollback()
+            raise e
 
 
     def delete_book_and_associated_data(self, db: Session, book_id: int):
@@ -151,15 +193,17 @@ class Author_Book_Controller:
 
         return author
 
-    def create_author(self, db: Session, author_name: str):
+    @staticmethod
+    def get_author_by_name(db: Session, author_name: str):
+        return db.query(Author).filter(Author.author_name == author_name).first()
+
+    @staticmethod
+    def create_author(db: Session, author_name: str):
         author = Author(author_name=author_name)
         db.add(author)
         db.commit()
         db.refresh(author)
         return author
-
-    def get_author_by_name(self, db: Session, author_name: str):
-        return db.query(Author).filter(Author.author_name == author_name).first()
 
     def create_author(self, db: Session, author_name: str):
         author = Author(author_name=author_name)
@@ -178,10 +222,12 @@ class Category_controller:
         db.refresh(category)
         return category
 
-    def get_category_by_name(self, db: Session, category_name: str):
+    @staticmethod
+    def get_category_by_name(db: Session, category_name: str):
         return db.query(Categories).filter(Categories.category_name == category_name).first()
-    def create_category(self, db: Session, category_name: str):
 
+    @staticmethod
+    def create_category(db: Session, category_name: str):
         category = Categories(category_name=category_name)
         db.add(category)
         db.commit()
