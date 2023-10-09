@@ -1,45 +1,14 @@
-from typing import List
 
-from fastapi import Depends, HTTPException, status
+from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from datetime import datetime
 
-from config.database import SessionLocal, get_db
 from models.main_models import Book, Author, Categories, BookWithCategory, UpdateAuthorRequest, UpdateCategoryRequest, \
     UpdateBookRequest
 
 
 class BookController:
 
-    # def create_book_with_authors_and_categories(self, db: Session, authors: List[str],
-    #                                             categories: List[str]):
-    #     try:
-    #         # Создайте экземпляр Book, используя данные из book_data
-    #         book = CreateBookRequest
-    #
-    #         # Проверьте и создайте авторов и категории, если они еще не существуют
-    #         for author_name in authors:
-    #             author = db.query(Author).filter(Author.name == author_name).first()
-    #             if not author:
-    #                 author = Author(name=author_name)
-    #             book.authors.append(author)
-    #
-    #         for category_name in categories:
-    #             category = db.query(Categories).filter(Categories.name == category_name).first()
-    #             if not category:
-    #                 category = Categories(name=category_name)
-    #             book.categories.append(category)
-    #
-    #         # Добавьте книгу в сессию и сохраните её в базе данных
-    #         db.add(book)
-    #         db.commit()
-    #         db.refresh(book)
-    #
-    #         return {"message": "Book created successfully", "book_id": book.id}
-    #     except Exception as e:
-    #         db.rollback()
-    #         raise HTTPException(status_code=500, detail="Internal Server Error")
 
     def delete_book_and_associated_data(self, db: Session, book_id: int):
         book = db.query(Book).filter(Book.id == book_id).first()
@@ -189,9 +158,28 @@ class Author_Book_Controller:
         db.refresh(author)
         return author
 
+    def get_author_by_name(self, db: Session, author_name: str):
+        return db.query(Author).filter(Author.author_name == author_name).first()
+
+    def create_author(self, db: Session, author_name: str):
+        author = Author(author_name=author_name)
+        db.add(author)
+        db.commit()
+        db.refresh(author)
+        return author
+
 
 class Category_controller:
 
+    def create_category(self, db: Session, category_name: str):
+        category = Categories(category_name=category_name)
+        db.add(category)
+        db.commit()
+        db.refresh(category)
+        return category
+
+    def get_category_by_name(self, db: Session, category_name: str):
+        return db.query(Categories).filter(Categories.category_name == category_name).first()
     def create_category(self, db: Session, category_name: str):
 
         category = Categories(category_name=category_name)

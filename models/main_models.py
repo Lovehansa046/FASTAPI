@@ -1,4 +1,3 @@
-# models.py
 from datetime import datetime
 from typing import Optional, Union, List
 
@@ -49,7 +48,7 @@ class ReadableAuthor(BaseModel):
 class Book(Base):
     __tablename__ = "books"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, unique=True)
     title = Column(String(255))
     isbn = Column(String(255))
     pageCount = Column(Integer)
@@ -122,12 +121,19 @@ class UpdateBookRequest(BaseModel):
     authors: Optional[List[str]] = None
     categories: Optional[List[str]] = None
 
-class CreateBookRequest(BaseModel):
-    title: Optional[str] = None
-    isbn: Optional[str] = None
-    pageCount: Optional[int] = None
-    publishedDate: Optional[datetime] = None
-    thumbnailUrl: Optional[str] = None
-    shortDescription: Optional[str] = None
-    longDescription: Optional[str] = None
-    status: Optional[str] = None
+
+
+class Authors(BaseModel):
+    author_name: str
+
+class Category(BaseModel):
+    category_name: str
+
+class CreateBook(BaseModel):
+    title: str
+    isbn: Optional[Union[str, None]]
+    pageCount: int
+    publishedDate: Optional[Union[str, datetime, None]]
+    thumbnailUrl: Optional[str]
+    shortDescription: Optional[Union[str, None]]
+    longDescription: Optional[Union[str, None]]
